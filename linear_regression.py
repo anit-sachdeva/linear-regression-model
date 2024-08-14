@@ -31,18 +31,15 @@ class LinearRegression:
             Stores the decision whether to include an intercept in the linear regression model's calculation.
         scale_features: bool
             Stores the decision whether to apply feature scaling.
-        coefficients: numpy.ndarray
-            Stores coefficients for each independent variable in the linear regression model; initialized to None.
-        intercept: float
-            Stores the intercept term for the linear regression model; initialized to None.
+        weights: numpy.ndarray
+            Stores coefficients for each independent variable and intercept term (if applicable) in the linear regression model; initialized to None.
         """
 
         self.learning_rate = learning_rate
         self.iterations = iterations
         self.fit_intercept = fit_intercept
         self.scale_features = scale_features
-        self.coefficients = None
-        self.intercept = None
+        self.weights = None
     
     def fit(self, X, y):
         """
@@ -55,11 +52,22 @@ class LinearRegression:
             The target values with shape (m_examples,).
 
         returns:
-        self
+        self: LinearRegression
             The instance of the linear regression model.
         """
 
-        pass
+        if self.scale_features:
+            X = self.apply_feature_scaling(X)
+
+        if self.fit_intercept:
+            X = np.concatenate((np.ones((X.shape[0]),1), X), axis = 1)
+
+        self.weights = np.zeros(X.shape[1],)
+
+        for _ in range(self.iterations):
+            self.gradient_descent(X, y)
+
+        return self
 
     def predict(self, X):
         """
@@ -74,7 +82,7 @@ class LinearRegression:
             The predicted values for the input features with shape (m_examples,)
         """
 
-        pass
+        return np.dot(self.weights, X)
 
     def calculate_cost(self, X, y):
         """
