@@ -32,7 +32,7 @@ class LinearRegression:
         scale_features: bool
             Stores the decision whether to apply feature scaling.
         weights: numpy.ndarray
-            Stores coefficients for each independent variable and intercept term (if applicable) in the linear regression model; initialized to None.
+            Stores coefficients for each independent variable and intercept term (if fit_intercept is True) in the linear regression model; initialized to None.
         """
 
         self.learning_rate = learning_rate
@@ -56,11 +56,14 @@ class LinearRegression:
             The instance of the linear regression model.
         """
 
+        X = X.values
+        y = y.values
+
         if self.scale_features:
             X = self.apply_feature_scaling(X)
 
         if self.fit_intercept:
-            X = np.concatenate((np.ones((X.shape[0]),1), X), axis = 1)
+            X = np.concatenate((np.ones((X.shape[0],1)), X), axis = 1)
 
         self.weights = np.zeros(X.shape[1],)
 
@@ -82,7 +85,7 @@ class LinearRegression:
             The predicted values for the input features with shape (m_examples,)
         """
 
-        return np.dot(self.weights, X)
+        return np.dot(X, self.weights)
 
     def calculate_cost(self, X, y):
         """
@@ -98,8 +101,11 @@ class LinearRegression:
         float
             The value of the cost function
         """
-
-        pass
+        m = X.shape[0]
+        
+        cost = np.sum(((self.predict(X) - y) ** 2) / (2 * m))
+            
+        return cost
 
     def gradient_descent(self, X, y):
         """
@@ -112,7 +118,14 @@ class LinearRegression:
             The target values with shape (m_examples,).
         """
 
-        pass
+        m = X.shape[0]
+
+        errors = self.predict(X) - y
+
+        gradient = np.dot(X.T, errors) / m
+
+        self.weights -= self.learning_rate * gradient
+
 
     def apply_feature_scaling(self, X):
         """
@@ -126,5 +139,13 @@ class LinearRegression:
         numpy.ndarray
             The scaled input features with shape (m_examples, n_features).
         """
+        
+        m, n = X.shape
+        X_scaled = np.zeros((m,n))
 
-        pass
+        for j in range(n):
+            mean = np.mean(X[:,j])
+            std_dev = np.std(X[:,j])
+            X_scaled[:,j] = ((X[:,j] - mean) / std_dev)
+
+        return X_scaled
